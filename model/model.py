@@ -26,6 +26,7 @@ class ResNetBlock(nn.Module):
         x = self.activation(x)
         x = self.c2(x)
         x = self.bn2(x)
+        print("SHAPE", x.size(), residual.size())
         if self.downsample:
             residual = self.dbn1(self.d1(x))
         x += residual
@@ -41,6 +42,7 @@ class ResNet3D(BaseModel):
         # First conv
         self.network.append(nn.Conv3d(3, 64, 7, (1, 2, 2), (3, 3, 3)))
         self.network.append(nn.BatchNorm3d(64))
+        self.network.append(nn.ReLU())
         self.network.append(nn.MaxPool3d(3, 2, 1))
         input = 64
         # group 1 is missing a block without this
@@ -64,6 +66,7 @@ class ResNet3D(BaseModel):
 
     def forward(self, x):
         for i, m in enumerate(self.network):
+            print("Layer: ", i, self.network[i])
             x = m(x)
         return x
 
