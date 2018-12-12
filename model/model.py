@@ -10,7 +10,7 @@ class ResNetBlock(nn.Module):
         
         self.out_channels = out_channels
         if self.downsample:
-            self.d1 = nn.Conv3d(in_channels, out_channels, 1, stride=(1, 2, 2), padding=padding, bias=False)
+            self.d1 = nn.Conv3d(in_channels, out_channels, 1, stride=(2, 2, 2), padding=padding, bias=False)
             self.dbn1 = nn.BatchNorm3d(out_channels)
             in_channels = out_channels
         self.c1 = nn.Conv3d(in_channels, out_channels, kernel, strides, padding, bias=bias)
@@ -20,68 +20,65 @@ class ResNetBlock(nn.Module):
         self.bn2 = normalization(out_channels)
     
     def forward(self, x):
+        if self.downsample:
+            x = self.dbn1(self.d1(x))
+        input_shape = x.size()
         residual = x
         x = self.c1(x)
         x = self.bn1(x)
         x = self.activation(x)
+        first_layer_shape = x.size()
         x = self.c2(x)
         x = self.bn2(x)
-        print("SHAPE", x.size(), residual.size())
-        if self.downsample:
-            residual = self.dbn1(self.d1(x))
+        # if self.downsample:
+        #     residual = self.dbn1(self.d1(x))
+        second_layer_shape = x.size()
+        # print("SHAPES: ", input_shape, first_layer_shape, second_layer_shape)
         x += residual
         x = self.activation(x)
+        # output_shape = x.size()
+        
 
         return x
 
 class ResNet3D(BaseModel):
-    def __init__(self, num_classes=26):
+    def __init__(self, num_classes=26, input_shape=(18, 176, 100)):
         super().__init__()
-        layers = [3, 4, 6, 3]
+        #layers = [3, 4, 6, 3]
+        layers = [2, 2, 2, 2]
         self.network = nn.ModuleList()
+        self.last = nn.ModuleList()
         # First conv
         self.network.append(nn.Conv3d(3, 64, 7, (1, 2, 2), (3, 3, 3)))
         self.network.append(nn.BatchNorm3d(64))
         self.network.append(nn.ReLU())
         self.network.append(nn.MaxPool3d(3, 2, 1))
+        self.last.append(nn.Linear(64*21*21*9, 10))
         input = 64
         # group 1 is missing a block without this
         self.network.append(ResNetBlock(input, input, 3, (1, 1, 1)))
-        # add other layers
-        for i, group in enumerate(layers):
-            section = nn.ModuleList()
-            for _ in range(1, group):
-                section.append(ResNetBlock(input, input))
-            # don't upsample on last layer
-            if i != len(layers)-1:
-                section.append(ResNetBlock(input, input*2, strides=(2, 2, 2)))
-                input *= 2
-            self.network.extend(section)
+        # # add other layers
+        # for i, group in enumerate(layers):
+        #     section = nn.ModuleList()
+        #     for _ in range(1, group):
+        #         section.append(ResNetBlock(input, input))
+        #     # don't upsample on last layer
+        #     if i != len(layers)-1:
+        #         section.append(ResNetBlock(input, input*2, downsample=True))
+        #         input *= 2
+        #     self.network.extend(section)
         
-        out_features = self.network[-1].out_channels
-        last_section = nn.ModuleList()
-        last_section.append(nn.AvgPool3d((1, 4, 4), stride=1))
-        last_section.append(nn.Linear(out_features, num_classes))
-        self.network.extend(last_section)
+        # self.network.append(nn.AvgPool3d((1, 4, 4), stride=1))
+        # out_features = self.network[-1].out_channels
+        # last_section = nn.ModuleList()
+        # last_section.append(nn.Linear(6144, num_classes))
+        # self.network.extend(last_section)
 
     def forward(self, x):
         for i, m in enumerate(self.network):
-            print("Layer: ", i, self.network[i])
+            input_size = x.size()
             x = m(x)
+            print("Layer: ", i, self.network[i], input_size, x.size())
+        x = x.view(10, -1)
+        x = self.last[0](x)
         return x
-
-
-class LSTM(BaseModel):
-    def __init__(self, num_classes=26):
-        super().__init__()
-        self.l1 = nn.LSTM(3, 512, 5)
-
-        self.fc1 = nn.Linear(512, 50)
-        self.fc2 = nn.Linear(50, num_classes)
-    
-    def forward(self, x):
-        out = self.l1(x)
-        out = self.fc1(out)
-        out = self.fc2(out)
-        return F.log_softmax(out, dim=1)
-    

@@ -49,15 +49,15 @@ class JpegDataset(object):
             classes_dict[i] = item
         return classes_dict
 
-def default_loader(path):
-    return Image.open(path).convert('RGB')
+def default_loader(path, size=(176, 100)):
+    return Image.open(path).convert('RGB').resize(size)
 
 
 class VideoFolder(torch.utils.data.Dataset):
 
     def __init__(self, root, csv_file_input, csv_file_labels, clip_size,
                  nclips, step_size, is_val, transform=None,
-                 loader=default_loader):
+                 loader=default_loader, image_size=(172, 100)):
         # root = os.path.join(root, '20bn-jester-v1')
         self.dataset_object = JpegDataset(csv_file_input, csv_file_labels, root)
 
@@ -72,6 +72,7 @@ class VideoFolder(torch.utils.data.Dataset):
         self.nclips = nclips
         self.step_size = step_size
         self.is_val = is_val
+        self.size = image_size
 
     def __getitem__(self, index):
         item = self.csv_data[index]
@@ -79,7 +80,7 @@ class VideoFolder(torch.utils.data.Dataset):
 
         imgs = []
         for img_path in img_paths:
-            img = self.loader(img_path)
+            img = self.loader(img_path, self.size)
             img = self.transform(img)
             imgs.append(torch.unsqueeze(img, 0))
 
