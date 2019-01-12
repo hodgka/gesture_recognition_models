@@ -12,8 +12,8 @@ from train import get_instance
 def main(config, resume):
     # setup data_loader instances
     data_loader = getattr(module_data, config['train_data_loader']['type'])(
-        config['data_loader']['args']['data_dir'],
-        batch_size=512,
+        config['train_data_loader']['args']['data_dir'],
+        batch_size=32,
         shuffle=False,
         val_split=0.0,
         split='test',
@@ -66,7 +66,7 @@ def main(config, resume):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Template')
-
+    
     parser.add_argument('-r', '--resume', default=None, type=str,
                            help='path to latest checkpoint (default: None)')
     parser.add_argument('-d', '--device', default=None, type=str,
@@ -78,5 +78,6 @@ if __name__ == '__main__':
         config = torch.load(args.resume)['config']
     if args.device:
         os.environ["CUDA_VISIBLE_DEVICES"]=args.device
+        config['n_gpu'] = len(args.device)
 
     main(config, args.resume)

@@ -3,35 +3,37 @@
     "n_gpu": 1,
 
     "arch": {
-        "type": "ResNet3D",
+        "type": "resnet10",
         "args": {
-            "num_classes": 26
+            "sample_size": 84,
+            "sample_duration": 16,
+            "num_classes": 27
         }
     },
     "train_data_loader": {
         "type": "JesterDataLoader",
         "args": {
             "data_dir": "data/20BNJESTER/20bn-jester-v1",
-            "batch_size": 10,
+            "batch_size": 32,
             "shuffle": true,
             "val_split": 0.0,
-            "num_workers": 2
+            "num_workers": 4
         }
     },
     "val_data_loader": {
         "type": "JesterDataLoader",
         "args": {
-            "data_dir": "data/20BNJESTER/",
-            "batch_size": 128,
+            "data_dir": "data/20BNJESTER/20bn-jester-v1",
+            "batch_size": 32,
             "shuffle": true,
             "val_split": 0.0,
-            "num_workers": 2
+            "num_workers": 4
         }
     },
     "optimizer": {
         "type": "Adam",
         "args": {
-            "lr": 0.001,
+            "lr": 5e-3,
             "weight_decay": 0,
             "amsgrad": true
         }
@@ -44,12 +46,12 @@
         "type": "StepLR",
         "args": {
             "step_size": 50,
-            "gamma": 0.1
+            "gamma": 0.01
         }
     },
     "trainer": {
         "epochs": 1000,
-        "save_dir": "saved/",
+        "save_dir": "resnet10/",
         "save_freq": 1,
         "verbosity": 2,
         "monitor": "val_loss",
@@ -57,6 +59,6 @@
     },
     "visualization": {
         "tensorboardX": true,
-        "log_dir": "saved/runs"
+        "log_dir": "resnet10/runs"
     }
 }

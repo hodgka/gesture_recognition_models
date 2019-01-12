@@ -17,7 +17,7 @@ class WriterTensorboardX():
         self.step = 0
         self.mode = ''
 
-        self.tensorboard_writer_ftns = ['add_scalar', 'add_scalars', 'add_image', 'add_audio', 'add_text', 'add_histogram', 'add_pr_curve', 'add_embedding']
+        self.tensorboard_writer_ftns = ['add_scalar', 'add_scalars', 'add_image', 'add_audio', 'add_text', 'add_histogram', 'add_pr_curve', 'add_embedding', 'add_video']
 
     def set_step(self, step, mode='train'):
         self.mode = mode
@@ -34,6 +34,7 @@ class WriterTensorboardX():
             add_data = getattr(self.writer, name, None)
             def wrapper(tag, data, *args, **kwargs):
                 if add_data is not None:
+                    # print('{}/{}'.format(self.mode, tag))
                     add_data('{}/{}'.format(self.mode, tag), data, self.step, *args, **kwargs)
             return wrapper
         else:

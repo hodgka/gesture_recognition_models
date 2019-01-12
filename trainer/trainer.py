@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torchvision.utils import make_grid
 from base import BaseTrainer
-
+from utils import plot_grad_flow
 
 class Trainer(BaseTrainer):
     """
@@ -12,7 +12,7 @@ class Trainer(BaseTrainer):
         Inherited from BaseTrainer.
     """
     def __init__(self, model, loss, metrics, optimizer, resume, config,
-                 data_loader, val_data_loader=None, lr_scheduler=None, train_logger=None):
+                 data_loader, val_data_loader=None, lr_scheduler=None, train_logger=None, plot_grads=False):
         super(Trainer, self).__init__(model, loss, metrics, optimizer, resume, config, train_logger)
         self.config = config
         self.data_loader = data_loader
@@ -20,6 +20,7 @@ class Trainer(BaseTrainer):
         self.do_validation = self.val_data_loader is not None
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
+        self.plot_grads = plot_grads
 
     def _eval_metrics(self, output, target):
         acc_metrics = np.zeros(len(self.metrics))
@@ -55,6 +56,9 @@ class Trainer(BaseTrainer):
             output = self.model(data)
             loss = self.loss(output, target)
             loss.backward()
+
+            if self.plot_grads:
+                plot_grad_flow(self.model.named_parameters())
             self.optimizer.step()
 
             self.writer.set_step((epoch - 1) * len(self.data_loader) + batch_idx)
@@ -69,7 +73,9 @@ class Trainer(BaseTrainer):
                     self.data_loader.n_samples,
                     100.0 * batch_idx / len(self.data_loader),
                     loss.item()))
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # print(data.cpu().size())
+                # self.writer.add_video('input', data.cpu())
 
         log = {
             'loss': total_loss / len(self.data_loader),
@@ -108,7 +114,7 @@ class Trainer(BaseTrainer):
                 self.writer.add_scalar('loss', loss.item())
                 total_val_loss += loss.item()
                 total_val_metrics += self._eval_metrics(output, target)
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         return {
             'val_loss': total_val_loss / len(self.val_data_loader),
