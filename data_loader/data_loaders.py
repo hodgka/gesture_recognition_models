@@ -179,7 +179,12 @@ class JesterDataLoader(BaseDataLoader):
         super().__init__(self.dataset, batch_size, shuffle, val_split, num_workers)
 
 transform = transforms.Compose([
-                        transforms.CenterCrop(84),
+                        transforms.RandomCrop(100),
+                        transforms.RandomApply([
+                            # transforms.RandomCrop(84),
+                            transforms.RandomAffine((-15, 15), (0.2, 0.2), (0.75, 1.25), 0.1),
+                            ]),
+                        transforms.RandomHorizontalFlip(),
                         transforms.ToTensor(),
                         transforms.Normalize(
                             mean=[0.485, 0.456, 0.406],
@@ -237,7 +242,7 @@ class TensorNormalize(object):
         """
         if not self.inplace:
             tensor = tensor.clone()
-
+        
         mean = torch.tensor(self.mean, dtype=torch.float32)#.expand_as(tensor)
         std = torch.tensor(self.std, dtype=torch.float32)#.expand_as(tensor)
         mean = mean.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).unsqueeze(0).expand_as(tensor)

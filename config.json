@@ -27,7 +27,8 @@
             "batch_size": 32,
             "shuffle": true,
             "val_split": 0.0,
-            "num_workers": 4
+            "num_workers": 4,
+            "split": "val"
         }
     },
     "optimizer": {
@@ -51,7 +52,7 @@
     },
     "trainer": {
         "epochs": 1000,
-        "save_dir": "resnet10/",
+        "save_dir": "resnet10/larger_crop",
         "save_freq": 1,
         "verbosity": 2,
         "monitor": "val_loss",
@@ -59,6 +60,6 @@
     },
     "visualization": {
         "tensorboardX": true,
-        "log_dir": "resnet10/runs"
+        "log_dir": "resnet10/runs/larger_crop"
     }
 }

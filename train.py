@@ -8,7 +8,7 @@ import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
 from trainer import Trainer
-from utils import Logger, LRFinder
+from utils import Logger#, LRFinder
 
 
 def get_instance(module, name, config, *args):
@@ -107,5 +107,5 @@ if __name__ == '__main__':
     if args.device:
         os.environ["CUDA_VISIBLE_DEVICES"]=args.device
         config['n_gpu'] = len(args.device.split(','))
-
+    print(config['n_gpu'])
     main(config, args.resume, args)

@@ -21,6 +21,7 @@ class BaseTrainer:
         self.model = model.to(self.device)
         if len(device_ids) > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
+        self.model=model
 
         self.loss = loss
         self.metrics = metrics
