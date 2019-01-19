@@ -179,8 +179,8 @@ class JesterDataLoader(BaseDataLoader):
         super().__init__(self.dataset, batch_size, shuffle, val_split, num_workers)
 
 transform = transforms.Compose([
-                        transforms.RandomCrop(100),
                         transforms.RandomApply([
+                            transforms.RandomCrop(100),
                             # transforms.RandomCrop(84),
                             transforms.RandomAffine((-15, 15), (0.2, 0.2), (0.75, 1.25), 0.1),
                             ]),

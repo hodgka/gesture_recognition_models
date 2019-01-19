@@ -3,7 +3,7 @@
     "n_gpu": 1,
 
     "arch": {
-        "type": "resnet10",
+        "type": "skinny_resnet10",
         "args": {
             "sample_size": 84,
             "sample_duration": 16,
@@ -35,7 +35,7 @@
         "type": "Adam",
         "args": {
             "lr": 5e-3,
-            "weight_decay": 0,
+            "weight_decay": 0.001,
             "amsgrad": true
         }
     },
@@ -52,7 +52,7 @@
     },
     "trainer": {
         "epochs": 1000,
-        "save_dir": "resnet10/larger_crop",
+        "save_dir": "skinny_resnet10/weight_decay",
         "save_freq": 1,
         "verbosity": 2,
         "monitor": "val_loss",
@@ -60,6 +60,6 @@
     },
     "visualization": {
         "tensorboardX": true,
-        "log_dir": "resnet10/runs/larger_crop"
+        "log_dir": "skinny_resnet10/runs/weight_decay"
     }
 }

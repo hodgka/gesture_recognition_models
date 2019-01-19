@@ -8,7 +8,7 @@ import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
 from trainer import Trainer
-from utils import Logger#, LRFinder
+from utils import Logger, LRFinder
 
 
 def get_instance(module, name, config, *args):

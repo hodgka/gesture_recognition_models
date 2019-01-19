@@ -1,30 +1,22 @@
-# PyTorch Template Project
-PyTorch deep learning project made easy.
+# Gesture Recognition Models
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-* [PyTorch Template Project](#pytorch-template-project)
+* [Gesture Recognition Models](#gesture-recognition-models)
 	* [Requirements](#requirements)
 	* [Features](#features)
 	* [Folder Structure](#folder-structure)
 	* [Usage](#usage)
-		* [Config file format](#config-file-format)
 		* [Using config files](#using-config-files)
 		* [Resuming from checkpoints](#resuming-from-checkpoints)
     * [Using Multiple GPU](#using-multiple-gpu)
-	* [Customization](#customization)
-		* [Data Loader](#data-loader)
-		* [Trainer](#trainer)
-		* [Model](#model)
 		* [Loss and metrics](#loss-and-metrics)
 			* [Multiple metrics](#multiple-metrics)
-		* [Additional logging](#additional-logging)
 		* [Validation data](#validation-data)
 		* [Checkpoints](#checkpoints)
     * [TensorboardX Visualization](#tensorboardx-visualization)
-	* [Contributing](#contributing)
 	* [TODOs](#todos)
 	* [License](#license)
 	* [Acknowledgments](#acknowledgments)
@@ -33,10 +25,10 @@ PyTorch deep learning project made easy.
 
 ## Requirements
 * Python >= 3.5
-* PyTorch >= 0.4
-* tqdm (Optional for `test.py`)
-* tensorboard >= 1.7.0 (Optional for TensorboardX)
-* tensorboardX >= 1.2 (Optional for TensorboardX)
+* PyTorch >= 1.0
+* tqdm 
+* tensorboard >= 1.7.0 
+* tensorboardX >= 1.2 
 
 ## Features
 * Clear folder structure which is suitable for many deep learning projects.
@@ -49,10 +41,11 @@ PyTorch deep learning project made easy.
 
 ## Folder Structure
   ```
-  pytorch-template/
+  gesture_recognition_models/
   │
   ├── train.py - main script to start training
   ├── test.py - evaluation of trained model
+  ├── demo.py - webcam demo of trained model
   ├── config.json - config file
   │
   ├── base/ - abstract base classes
@@ -61,7 +54,8 @@ PyTorch deep learning project made easy.
   │   └── base_trainer.py - abstract base class for trainers
   │
   ├── data_loader/ - anything about data loading goes here
-  │   └── data_loaders.py
+  │   ├── data_loaders.py - data loader class
+  │   └── transforms.py
   │
   ├── data/ - default directory for storing input data
   │
@@ -79,70 +73,16 @@ PyTorch deep learning project made easy.
   └── utils/
       ├── util.py
       ├── logger.py - class for train logging
-      ├── visualization.py - class for tensorboardX visualization support
-      └── ...
+      ├── lrfinder.py - class for finding good initial lr
+      └── visualization.py - class for tensorboardX visualization support
   ```
 
 ## Usage
 The code in this repo is an MNIST example of the template.
 Try `python3 train.py -c config.json` to run code.
+Try `python3 test.py --resume ...` to test a model
+Try `python3 demo.py --resume ...` to run the demo
 
-### Config file format
-Config files are in `.json` format:
-```javascript
-{
-  "name": "Mnist_LeNet",        // training session name
-  "n_gpu": 1,                   // number of GPUs to use for training.
-  
-  "arch": {
-    "type": "MnistModel",       // name of model architecture to train
-    "args": {
-
-    }                
-  },
-  "data_loader": {
-    "type": "MnistDataLoader",  // selecting data loader
-    "args":{
-      "data_dir": "data/",      // dataset path
-      "batch_size": 64,         // batch size
-      "shuffle": true,          // shuffle training data before splitting
-      "validation_split": 0.1   // validation data ratio
-      "num_workers": 2,         // number of cpu processes to be used for data loading
-    }
-  },
-  "optimizer": {
-    "type": "Adam",
-    "args":{
-      "lr": 0.001,              // learning rate
-      "weight_decay": 0,        // (optional) weight decay
-      "amsgrad": true
-    }
-  },
-  "loss": "nll_loss",           // loss
-  "metrics": [
-    "my_metric", "my_metric2"   // list of metrics to evaluate
-  ],                         
-  "lr_scheduler": {
-    "type":"StepLR",            // learning rate scheduler
-    "args":{
-      "step_size":50,          
-      "gamma":0.1
-    }
-  },
-  "trainer": {
-    "epochs": 1000,             // number of training epochs
-    "save_dir": "saved/",       // checkpoints are saved in save_dir/name
-    "save_freq": 1,             // save checkpoints every save_freq epochs
-    "verbosity": 2,             // 0: quiet, 1: per epoch, 2: full
-    "monitor": "val_loss",      // evaluation metric for finding best model
-    "monitor_mode": "min"       // "min" if monitor value the lower the better, otherwise "max". "off" to disable
-  },
-  "visualization":{
-    "tensorboardX": true,       // enable tensorboardX visualization support
-    "log_dir": "saved/runs"     // directory to save log files for visualization
-  }
-}
-```
 
 Add addional configurations if you need.
 
@@ -150,14 +90,14 @@ Add addional configurations if you need.
 Modify the configurations in `.json` config files, then run:
 
   ```
-  python train.py --config config.json
+  python3 train.py --config config.json
   ```
 
 ### Resuming from checkpoints
 You can resume from a previously saved checkpoint by:
 
   ```
-  python train.py --resume path/to/checkpoint
+  python3 train.py --resume path/to/checkpoint
   ```
 
 ### Using Multiple GPU
@@ -165,77 +105,12 @@ You can enable multi-GPU training by setting `n_gpu` argument of the config file
 If configured to use smaller number of gpu than available, first n devices will be used by default.
 Specify indices of available GPUs by cuda environmental variable.
   ```
-  python train.py --device 2,3 -c config.json
+  python3 train.py --device 2,3 -c config.json
   ```
   This is equivalent to
   ```
-  CUDA_VISIBLE_DEVICES=2,3 python train.py -c config.py
+  CUDA_VISIBLE_DEVICES=2,3 python3 train.py -c config.py
   ```
-
-## Customization
-### Data Loader
-* **Writing your own data loader**
-
-1. **Inherit ```BaseDataLoader```**
-
-    `BaseDataLoader` is a subclass of `torch.utils.data.DataLoader`, you can use either of them.
-
-    `BaseDataLoader` handles:
-    * Generating next batch
-    * Data shuffling
-    * Generating validation data loader by calling
-    `BaseDataLoader.split_validation()`
-
-* **DataLoader Usage**
-
-  `BaseDataLoader` is an iterator, to iterate through batches:
-  ```python
-  for batch_idx, (x_batch, y_batch) in data_loader:
-      pass
-  ```
-* **Example**
-
-  Please refer to `data_loader/data_loaders.py` for an MNIST data loading example.
-
-### Trainer
-* **Writing your own trainer**
-
-1. **Inherit ```BaseTrainer```**
-
-    `BaseTrainer` handles:
-    * Training process logging
-    * Checkpoint saving
-    * Checkpoint resuming
-    * Reconfigurable monitored value for saving current best
-      * Controlled by the configs `monitor` and `monitor_mode`, if `monitor_mode == 'min'` then the trainer will save a checkpoint `model_best.pth` when `monitor` is a current minimum
-
-2. **Implementing abstract methods**
-
-    You need to implement `_train_epoch()` for your training process, if you need validation then you can implement `_valid_epoch()` as in `trainer/trainer.py`
-
-* **Example**
-
-  Please refer to `trainer/trainer.py` for MNIST training.
-
-### Model
-* **Writing your own model**
-
-1. **Inherit `BaseModel`**
-
-    `BaseModel` handles:
-    * Inherited from `torch.nn.Module`
-    * `summary()`: Model summary
-
-2. **Implementing abstract methods**
-
-    Implement the foward pass method `forward()`
-
-* **Example**
-
-  Please refer to `model/model.py` for a LeNet example.
-
-### Loss
-Custom loss functions can be implemented in 'model/loss.py'. Use them by changing the name given in "loss" in config file, to corresponding name.
 
 #### Metrics
 Metric functions are located in 'model/metric.py'.
